@@ -6,7 +6,8 @@
 struct change {
     int type;
     int line_number;
-    char line_data[1016];
+    char filename[100];
+    char line_data[9016];
 };
 
 #endif

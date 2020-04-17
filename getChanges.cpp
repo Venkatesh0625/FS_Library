@@ -3,6 +3,8 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include "change.h"
+
 using namespace std;
 
 struct change {
@@ -24,14 +26,13 @@ int getLine_(string line)
     return atoi(nbr.c_str());
 }
 
-vector<change> updated(string filename)
+void get_changes(string filename, vector<change) &changes)
 {
     string str;
     int line_count = 0;
     ifstream file;
     char curr,prev = ' ';
     struct change data;
-    vector<change> changes;
 
     file.open(filename.c_str());
 
@@ -69,15 +70,5 @@ vector<change> updated(string filename)
     
 
         prev = curr;
-    }
-    return changes;
-}
-
-int main()
-{
-    vector<change> x = updated("out.txt");
-    vector<change>::iterator itr;
-    for(itr=x.begin(); itr != x.end(); itr++) {
-        cout<<endl<<itr->type<<"\t"<<itr->line_number<<"\t"<<itr->line_data<<endl;
     }
 }

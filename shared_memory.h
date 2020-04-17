@@ -2,31 +2,26 @@
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
-#include <stdlib.h> 
+hello
+
 #include "change.h"
+
 #define OPEN 0
 #define CLOSED 1
 
-
-struct change chg;
-
 struct memory {
 	short int status;
-	struct change changes[100];
-}*ptr;
-
-
+	struct change changes[100]
+};
 void error(char* err)
 {
 	perror(err);
 	exit(EXIT_FAILURE);
 }
 
-void create_memory(int uniq_id, int *shm_id, struct memory *ptr)
+void create_memory(key_t &key, int *shm_id, struct memory *ptr)
 {
     int id;
-    key_t key = (int) uniq_id;
-
 	id = (int) shmget(key, sizeof(struct memory),IPC_CREAT | 0666);
 	if(id < 0)
 		error("*** shmget error (server) ***\n");
