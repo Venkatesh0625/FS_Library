@@ -103,7 +103,7 @@ int send_data(int &client_fd, queue<struct change> &que)
 		{
 			char buffer[1024] = {0};
 			serialize_structure(buffer, &que.front());
-			send(client_fd, buffer, 1024);
+			send(client_fd, buffer, 1024, 0);
 		}
 	}
 }
