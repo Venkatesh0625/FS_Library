@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <unistd.h> 
-#include <iostream>
 #include <stdlib.h>
 #include <sys/socket.h>  
 #include <netinet/in.h> 
 
+#include "flags.h"
 #include "error.h"
+#include "file_chng.h"
 #include "shared_memory.h"
 
 #define BUFFER_SIZE 1024
@@ -21,7 +22,7 @@ int main(int argc, char const *argv[])
 
 	struct sockaddr_in address;  
 	int addrlen = sizeof(address); 
-	char buffer[1024] = {0};
+	char buffer[1024] = {0},*file_buf;
 
 	address.sin_family = AF_INET; 
 	address.sin_addr.s_addr = INADDR_ANY; 
@@ -51,7 +52,38 @@ int main(int argc, char const *argv[])
 	while(1) {
 		valread = recv( client_fd ,buffer, BUFFER_SIZE, 0);
 		struct change *result = deserialize_structure(buffer);
-		update_memory(shm_ptr, result, memory_index);
+		if(result->type == REPLACE_FILE)
+		{
+			//file_buffer to store the received file content
+			file_buf = (char *) malloc(result->line_number);
+
+			//Size of the replacing file will be stored in line_number of structure received
+			valread = recv( client_fd, file_buf, result->line_number, 0);
+			replace_file(result->filename, file_buf);
+
+			//Clearing memory
+			delete file_buf;
+		}
+		else if(result->type == CREATE_N_REPLACE)
+		{
+			file_buf = (char *) malloc(result->line_number);
+
+			//Creating a file using touch
+			char *argument[] = {"touch", result->filename};
+        	execvp(argument[0], argument);
+
+			//file_buffer to store the received file content
+			file_buf = (char *) malloc(result->line_number);
+
+			//Size of the replacing file will be stored in line_number of structure received
+			valread = recv( client_fd, file_buf, result->line_number, 0);
+			replace_file(result->filename, file_buf);
+
+			//Clearing memory
+			delete file_buf;
+		}
+		else
+			update_memory(shm_ptr, result, memory_index);
 	}
 	return 0; 
 } 

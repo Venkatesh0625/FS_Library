@@ -1,0 +1,43 @@
+diff --git a/getChanges.cpp b/get
+index 2c54969..5c2db82 100644
+--- a/getChanges.cpp
++++ b/get
+@@ -60,7 +60,7 @@ void get_changes(char* output_file,queue<struct change> &que)
+ 
+             else {
+                 data.type = INSERT_LINE;
+-                data.line_number = --line_count + 1;
++                data.line_number = -line_count + 1;
+                 strcpy(data.line_data,line+1);
+             }
+ 
+@@ -72,8 +72,7 @@ void get_changes(char* output_file,queue<struct change> &que)
+             }
+         
+         if(data.type != 0)
+-            que.push(data);
+-
++            
+         if(curr != '\\')
+             prev = curr;
+         else
+@@ -82,9 +81,8 @@ void get_changes(char* output_file,queue<struct change> &que)
+     }
+     cout<<endl;
+     while(!que.empty()) 
+-    {
+         struct change *x = &que.front();
+-        printf("%d %d %s %s\n",x->type, x->line_number, x->filename, x->line_data);
++        printf("%d %d %s%s\n",x->type, x->line_number, x->filename, x->line_data);
+         que.pop();
+     }
+     fclose(file_ptr);
+@@ -94,6 +92,6 @@ void get_changes(char* output_file,queue<struct change> &que)
+ 
+ int main()
+ {
+-    queue<struct change> que;
++    queue<struc change> que;
+     get_changes("diff.txt",que);
+ }
+\ No newline at end of file

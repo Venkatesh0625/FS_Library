@@ -1,6 +1,12 @@
 .vscode/
+.temp_dir
+.diff_dir
+.watch_dir
 infos/
 a.out
 server
 client
 hello
+c.c
+watch.c
+watc.c
