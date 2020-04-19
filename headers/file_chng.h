@@ -1,14 +1,19 @@
 #ifndef FILE_CHNG
 #define FILE_CHNG
 
+#include <iostream>
 #include <stdio.h>
+#include <thread>
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
 #include <sys/wait.h>
 
+
 #include "flags.h"
 #include "change.h"
+
+using namespace std;
 
 void copy_file(char* src, char* dest)
 {
@@ -91,5 +96,21 @@ void replace_file(char* filename, char* buffer)
     fprintf(filePtr, "%s", buffer);
     fclose(filePtr);
 }
+
+int handle_data(queue<struct change> &que)
+{
+	while(true)
+	{
+		while(que.empty());
+
+		while(!que.empty())
+		{
+			struct change data = que.front();
+			update_file(&data);
+			que.pop();
+		}
+	}
+}
+
 
 #endif

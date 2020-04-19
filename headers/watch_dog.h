@@ -114,6 +114,5 @@ void watch_dog(char* dir,int fd,int wd, queue<struct change> &que)
     inotify_rm_watch( fd, wd );
 
     close( fd );
-
 }
 

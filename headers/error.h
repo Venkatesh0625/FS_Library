@@ -3,7 +3,7 @@
 
 #include<stdio.h>
 
-void throw_error(char* err)
+void error(char* err)
 {
     perror(err);
     exit(EXIT_FAILURE);

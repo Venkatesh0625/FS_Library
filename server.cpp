@@ -14,12 +14,22 @@
 #include "headers/file_chng.h"
 
 using namespace std;
+
 #define BUFFER_SIZE 1024
 #define PORT 8088
 
+int show_q(queue<struct change>  q)
+{
+	while(!q.empty())
+	{
+		struct change data = q.front();
+		cout<<data.type<<"\t"<<data.line_number<<"\t"<<data.filename<<"\t"<<data.line_data<<endl;
+		q.pop();
+	}
+}
 int send_data(int &, queue<struct change> &);
 
-int init_socket(int &server_fd, int &client_fd, queue<struct change> &que)
+int init_socket(int &server_fd, int &client_fd, queue<struct change> &to_send, queue<struct change> &to_change)
 {
 
 	int	valread,
@@ -48,8 +58,9 @@ int init_socket(int &server_fd, int &client_fd, queue<struct change> &que)
 		
 	if ((client_fd = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen))<0) 
 		perror("accept");
+	cout<<"\naccepted\n";
 
-	thread t(send_data, client_fd, que);
+	thread t(send_data, ref(client_fd), ref(to_send));
 	while(1) 
 	{
 		valread = recv( client_fd ,buffer, BUFFER_SIZE, 0);
@@ -86,7 +97,10 @@ int init_socket(int &server_fd, int &client_fd, queue<struct change> &que)
 			delete file_buf;
 		}
 		else
-			que.push(*result);
+			//Push into the queue to send 
+			to_change.push(*result);
+		struct change data = *result;
+		cout<<data.type<<"\t"<<data.line_number<<"\t"<<data.filename<<"\t"<<data.line_data<<endl<<endl;
 	}
 	t.join();
 }
@@ -97,28 +111,30 @@ int send_data(int &client_fd, queue<struct change> &que)
 	{
 		//wait until queue is not empty
 		while(que.empty());
-
 		//iterate to empty the queue
 		while(!que.empty())
 		{
-			char buffer[1024] = {0};
+			char buffer[BUFFER_SIZE] = {0};
 			serialize_structure(buffer, &que.front());
-			send(client_fd, buffer, 1024, 0);
+			send(client_fd, buffer, BUFFER_SIZE, 0);
+			que.pop();
 		}
 	}
 }
 
 int main()
 {
-	int server_fd, client_fd;
-	queue<struct change> que;
-	struct change data = {0,0,"helo","lfjxbjkdfbkjdfbjbjkbsfjkvb"};
-	thread t1(init_socket,server_fd, client_fd, que);
-	while(1)
+    queue <struct change> to_send;
+	queue <struct change> to_change;
+    int watch_fd, watch_wd;
+    int server_fd, client_fd;
+	thread t1(init_socket, ref(server_fd), ref(client_fd), ref(to_send), ref(to_change));
+	while(true)
 	{
+		struct change data = {1,2,"fh","from server"};
 		sleep(1);
-		for(int i=0;i<10;i++);
-		que.push(data);
+		for(int i = 0;i<10;i++)
+			to_send.push(data);
 	}
 	t1.join();
 }
