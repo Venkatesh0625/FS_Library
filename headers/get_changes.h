@@ -1,3 +1,6 @@
+#ifndef GET_CHANGES_H
+#define GET_CHANGES_H
+
 #include <iostream>
 #include <stdlib.h>
 #include <string.h>
@@ -40,11 +43,13 @@ void get_changes(char* filename, queue<struct change> &que)
     strcat(temp_path, filename);
     strcat(actual_path, filename);
 
-    //printf("\n\n%s %s %s\n\n", actual_path, temp_path, diff_file);
+    printf("\n\n%s %s %s\n\n", actual_path, temp_path, diff_file);
 
     //function from header file file_chng
     load_diff(actual_path, temp_path, diff_file);
 
+    //Update the temp file 
+    copy_file(actual_path, temp_path);
     //variables for loading and extracting files
     FILE *file_ptr = fopen(diff_file,"r");
     char *line = {0};
@@ -108,9 +113,5 @@ void get_changes(char* filename, queue<struct change> &que)
     fclose(file_ptr);
 }
 
-int main()
-{
-    queue<struct change> que;
-    get_changes("x",que);
-    
-}
+#endif
+

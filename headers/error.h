@@ -5,7 +5,7 @@
 
 void throw_error(char* err)
 {
-    perror(message);
+    perror(err);
     exit(EXIT_FAILURE);
 }
 

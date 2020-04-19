@@ -1,25 +1,31 @@
-#include <stdio.h>
+
+#include <iostream>
+#include <queue>
+#include <thread>
 #include <unistd.h> 
 #include <stdlib.h>
+#include <stdio.h>
 #include <sys/socket.h>  
 #include <netinet/in.h> 
 
-#include "flags.h"
-#include "error.h"
-#include "file_chng.h"
-#include "shared_memory.h"
+#include "headers/change.h"
+#include "headers/error.h"
+#include "headers/serialize.h"
+#include "headers/file_chng.h"
 
+using namespace std;
 #define BUFFER_SIZE 1024
-#define PORT 8080 
+#define PORT 8088
 
-int main(int argc, char const *argv[]) 
-{ 
-	int server_fd,
-		client_fd,
-		valread,
+int send_data(int &, queue<struct change> &);
+
+int init_socket(int &server_fd, int &client_fd, queue<struct change> &que)
+{
+
+	int	valread,
 		opt = 1,
 		memory_index = 0;
-
+	
 	struct sockaddr_in address;  
 	int addrlen = sizeof(address); 
 	char buffer[1024] = {0},*file_buf;
@@ -28,30 +34,27 @@ int main(int argc, char const *argv[])
 	address.sin_addr.s_addr = INADDR_ANY; 
 	address.sin_port = htons( PORT ); 
 
-	key_t key = 456;
-	int shm_id;
-	struct memory *shm_ptr;
-
-	create_memory(&key, &shm_id, shm_ptr);
-
 	if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) 
-		error("socket failed"); 
+		perror("socket failed"); 
 		
 	if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) 
-		error("setsockopt"); 
+		perror("setsockopt"); 
 		
 	if (bind(server_fd, (struct sockaddr *)&address, sizeof(address))<0) 
-		error("bind failed"); 
+		perror("bind failed"); 
 
 	if (listen(server_fd, 3) < 0) 
-		error("listen"); 
+		perror("listen"); 
 		
 	if ((client_fd = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen))<0) 
-		error("accept");
+		perror("accept");
 
-	while(1) {
+	thread t(send_data, client_fd, que);
+	while(1) 
+	{
 		valread = recv( client_fd ,buffer, BUFFER_SIZE, 0);
 		struct change *result = deserialize_structure(buffer);
+
 		if(result->type == REPLACE_FILE)
 		{
 			//file_buffer to store the received file content
@@ -83,8 +86,39 @@ int main(int argc, char const *argv[])
 			delete file_buf;
 		}
 		else
-			update_memory(shm_ptr, result, memory_index);
+			que.push(*result);
 	}
-	return 0; 
-} 
+	t.join();
+}
 
+int send_data(int &client_fd, queue<struct change> &que)
+{
+	while(true)
+	{
+		//wait until queue is not empty
+		while(que.empty());
+
+		//iterate to empty the queue
+		while(!que.empty())
+		{
+			char buffer[1024] = {0};
+			serialize_structure(buffer, &que.front());
+			send(client_fd, buffer, 1024);
+		}
+	}
+}
+
+int main()
+{
+	int server_fd, client_fd;
+	queue<struct change> que;
+	struct change data = {0,0,"helo","lfjxbjkdfbkjdfbjbjkbsfjkvb"};
+	thread t1(init_socket,server_fd, client_fd, que);
+	while(1)
+	{
+		sleep(1);
+		for(int i=0;i<10;i++);
+		que.push(data);
+	}
+	t1.join();
+}

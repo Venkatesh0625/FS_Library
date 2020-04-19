@@ -10,12 +10,10 @@
 #include "flags.h"
 #include "change.h"
 
-void copy_file(char* filename)
+void copy_file(char* src, char* dest)
 {
-    char dest[24] = "temp/";
-    strcat(dest,filename);
-    char *argument[] = {"cp", filename, dest, NULL};
-    if(!fork())
+    char *argument[] = {"cp", src, dest, NULL};
+    if(!fork()) 
         execvp(argument[0],argument);
     else
         wait(NULL);

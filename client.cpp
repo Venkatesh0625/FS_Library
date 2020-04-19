@@ -9,16 +9,10 @@
 
 using namespace std;
 
-struct change {
-    unsigned short int type;
-    unsigned long int line_number;
-    char line_data[100];
-}chg;
+int init_client(int client_fd, )
+{
 
-chg.type = 3;
-strcpy(chg.line_number,"othadei");
-chg.line_number = 5;
-
+}
 int main(int argc, char const *argv[]) 
 { 
 	int sock = 0, valread; 
