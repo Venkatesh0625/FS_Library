@@ -23,6 +23,7 @@ int sendc_data(int &, queue<struct change> &);
 
 int init_client(int &server_fd, queue<change> &to_send, queue<change> &to_change)
 {
+    char host_addr[] = "127.0.0.1";
 	char buffer[1024] = {0};
 	char* file_buf;
 	int valread; 
@@ -94,18 +95,32 @@ int init_client(int &server_fd, queue<change> &to_send, queue<change> &to_change
 
 int sendc_data(int &server_fd, queue<struct change> &que)
 {
-	while(true)
-	{
-		while(que.empty());
+	// while(true)
+	// {
+	// 	while(que.empty());
 
-		while(!que.empty())
-		{
-			char buffer[1024] = {0};
-			serialize_structure(buffer, &que.front());
-			send(server_fd, buffer, 1024, 0);
-			que.pop();
-		}
-	}
+	// 	while(!que.empty())
+	// 	{
+	// 		char buffer[1024] = {0};
+	// 		serialize_structure(buffer, &que.front());
+	// 		send(server_fd, buffer, 1024, 0);
+	// 		que.pop();
+	// 	}
+	// }
+    long siz;
+    FILE* ptr = fopen("watch.c","r");
+    fseek(ptr, 0, SEEK_END);
+    siz = ftell(ptr);
+    fseek(ptr, 0, SEEK_SET);
+    char file_buf[siz+1] = {0};
+    fread(file_buf, 1, siz, ptr); 
+    file_buf[siz] = 0;
+    fclose(ptr);
+    struct change data = {CREATE_N_REPLACE,siz+1,"file.txt","from client"};
+    char buffer[1024] = {0};
+    serialize_structure(buffer, &data); 
+    send(server_fd, buffer, 1024, 0); 
+    send(server_fd, file_buf, siz+1, 0); 
 }
 
 #endif
@@ -115,14 +130,9 @@ int main()
 	queue <struct change> to_change;
     int watch_fd, watch_wd;
     int server_fd, client_fd;
+    
 	thread t1(init_client, ref(server_fd), ref(to_send), ref(to_change));
-	while(true)
-	{
-		struct change data = {1,2,"fh","from client"};
-		sleep(1);
-		for(int i = 0;i<10;i++)
-			to_send.push(data);
-	}
+
 	t1.join();
 }
 

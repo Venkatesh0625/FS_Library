@@ -97,22 +97,31 @@ void get_events(int fd, queue <struct change> &que)
     }
 }
 
-void watch_dog(char* dir,int fd,int wd, queue<struct change> &que)
+void watch_dog(char* dir,int fd,int wd, queue<struct change> &to_change, map<int, char*> &directories)
 {
     fd = inotify_init();
     if ( fd < 0 )
         perror( "Couldn't initialize inotify");
 
     wd = inotify_add_watch(fd, dir, IN_CREATE | IN_MODIFY | IN_DELETE);
+
+    
     if (wd == -1) 
         printf("Couldn't add watch to %s\n",dir);
     else 
         printf("Watching:: %s\n",dir);
 
-    get_events(fd, que);
+    strpcy(directories[wd], dir);
+    
+    get_events(fd, to_change);
 
     inotify_rm_watch( fd, wd );
 
     close( fd );
 }
 
+
+int main()
+{
+
+}

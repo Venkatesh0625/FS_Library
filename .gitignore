@@ -8,5 +8,6 @@ server
 client
 hello
 c.c
+c.cpp
 watch.c
 watc.c

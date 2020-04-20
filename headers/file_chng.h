@@ -41,6 +41,7 @@ void update_file(struct change* chng)
     char sed_command[9030]= {0};
     
     printf("%s\n",sed_command);
+
     if(chng->type == INSERT_LINE) 
     {
         sprintf(sed_command, "%d i %s", chng->line_number, chng->line_data);
@@ -49,7 +50,6 @@ void update_file(struct change* chng)
             execvp(argument[0], argument);
         else
             wait(NULL);
-        
     }
     
     else if(chng->type == REPLACE_LINE)
@@ -61,6 +61,7 @@ void update_file(struct change* chng)
         else
         wait(NULL);
     }
+
     else if(chng->type == DELETE_LINE)
     {
         sprintf(sed_command, "%dd", chng->line_number);
@@ -112,5 +113,9 @@ int handle_data(queue<struct change> &que)
 	}
 }
 
+// int main()
+// {
+
+// }
 
 #endif

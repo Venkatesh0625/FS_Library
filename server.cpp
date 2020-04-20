@@ -80,21 +80,26 @@ int init_socket(int &server_fd, int &client_fd, queue<struct change> &to_send, q
 		}
 		else if(result->type == CREATE_N_REPLACE)
 		{
+			cout<<"got";
 			file_buf = (char *) malloc(result->line_number);
 
 			//Creating a file using touch
 			char *argument[] = {"touch", result->filename};
-        	execvp(argument[0], argument);
+			if(!fork())
+        		execvp(argument[0], argument);
+			else
+			{
+				wait(NULL);
+				cout<<"did";
 
-			//file_buffer to store the received file content
-			file_buf = (char *) malloc(result->line_number);
+				//Size of the replacing file will be stored in line_number of structure received
+				valread = recv( client_fd, file_buf, result->line_number, 0);
+				cout<<file_buf;
+				replace_file(result->filename, file_buf);
 
-			//Size of the replacing file will be stored in line_number of structure received
-			valread = recv( client_fd, file_buf, result->line_number, 0);
-			replace_file(result->filename, file_buf);
-
-			//Clearing memory
-			delete file_buf;
+				//Clearing memory
+				delete file_buf;
+			}
 		}
 		else
 			//Push into the queue to send 
